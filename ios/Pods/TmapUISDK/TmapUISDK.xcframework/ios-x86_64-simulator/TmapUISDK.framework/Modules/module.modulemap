@@ -1,0 +1,19 @@
+framework module TmapUISDK {
+  umbrella header "TmapUISDK-umbrella.h"
+  
+  private header "OpusDecoder.h"
+  private header "NSUserDefaults+SecureAdditions.h"
+  private header "ObjcExceptionCatcher.h"
+
+  export *
+  explicit module Private {
+    header "OpusDecoder.h"
+    header "NSUserDefaults+SecureAdditions.h"
+    header "ObjcExceptionCatcher.h"
+  }
+}
+
+module TmapUISDK.Swift {
+  header "TmapUISDK-Swift.h"
+  requires objc
+}

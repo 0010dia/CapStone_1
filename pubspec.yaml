@@ -1,0 +1,35 @@
+name: flutter_navi_sdk_sample
+description: flutter navi sdk sample
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.19.6 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  go_router: ^16.0.0
+  cupertino_icons: ^1.0.2
+  provider: ^6.0.5
+  permission_handler: ^12.0.1
+  fluttertoast: ^8.2.2
+
+  tmap_ui_sdk:
+    git:
+      url: https://github.com/0010dia/TmapUI_FlutterSDK.git # 본인이 Fork한 저장소 주소
+      ref: main # 수정한 브랜치 이름
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  assets:
+    - assets/img.PNG
+
+  uses-material-design: true

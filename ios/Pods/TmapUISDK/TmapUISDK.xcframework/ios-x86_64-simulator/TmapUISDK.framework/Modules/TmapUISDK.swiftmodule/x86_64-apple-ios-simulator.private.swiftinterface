@@ -1,0 +1,1119 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.0 effective-5.10 (swiftlang-6.0.0.9.10 clang-1600.0.26.2)
+// swift-module-flags: -target x86_64-apple-ios13.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-bare-slash-regex -module-name TmapUISDK
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface
+import AVFAudio
+import AVFoundation
+import Alamofire
+import AloeStackView
+import CallKit
+import Combine
+import CombineCocoa
+import CombineExt
+import CoreGraphics
+import CoreLocation
+import CoreTelephony
+import DeveloperToolsSupport
+import Foundation
+import Interpolate
+import KeychainAccess
+import Kingfisher
+import MapKit
+import MarqueeLabel
+import PinLayout
+import QuartzCore
+import ReactorKit
+import RxCocoa
+import RxGesture
+import RxRelay
+import RxSwift
+import Solar
+import Swift
+import SwiftReorder
+import SwiftSimplify
+import SwiftUI
+import TinyConstraints
+import TmapNaviSDK
+@_exported import TmapUISDK
+import UIKit
+import VSMSDK
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+import libxml2
+import os.log
+import os
+extension Combine.Publisher where Self.Failure == Swift.Never {
+  public func assignNoRetain<Root>(to keyPath: Swift.ReferenceWritableKeyPath<Root, Self.Output>, on object: Root) -> Combine.AnyCancellable where Root : AnyObject
+}
+extension CoreLocation.CLLocationCoordinate2D {
+  public init(x: Swift.Double, y: Swift.Double)
+  public var x: Swift.Double {
+    get
+    set
+  }
+  public var y: Swift.Double {
+    get
+    set
+  }
+}
+extension TmapNaviSDK.LaneTurnType : Swift.Comparable {
+  public static func < (lhs: TmapNaviSDK.LaneTurnType, rhs: TmapNaviSDK.LaneTurnType) -> Swift.Bool
+}
+extension CoreFoundation.CGSize {
+  public func applying(scale: CoreFoundation.CGFloat) -> CoreFoundation.CGSize
+}
+extension Foundation.FileManager {
+  public func secureCopyItem(at srcURL: Foundation.URL, to dstURL: Foundation.URL) -> Swift.Bool
+}
+extension UIKit.UIImage {
+  convenience public init?(color: UIKit.UIColor, size: CoreFoundation.CGSize = CGSize(width: 1, height: 1))
+}
+extension Swift.String {
+  public func toBoolByRandomValue() -> Swift.Bool
+  public func toInt() -> Swift.Int?
+}
+@_hasMissingDesignatedInitializers public class TmapUISDKManager {
+  public static let shared: TmapUISDK.TmapUISDKManager
+  public var stateSubject: Combine.CurrentValueSubject<TmapUISDK.UISDKState, Swift.Never> {
+    get
+  }
+  public var mapviewDelegate: (any TmapUISDK.UISDKMapViewDelegate)? {
+    get
+  }
+  public func initSDK(initOption: TmapUISDK.UISDKInitOption)
+  public func finalizeSDK()
+  public func requestDismissView()
+  public func getViewController() -> UIKit.UIViewController?
+  public func setConfig(config: TmapUISDK.UISDKConfigOption?)
+  public func getConfig() -> TmapUISDK.UISDKConfigOption
+  public func phoneWindow() -> UIKit.UIWindow?
+  @objc deinit
+}
+extension TmapUISDK.TmapUISDKManager {
+  public func requestRoute(origin: TmapNaviSDK.Point? = nil, destination: TmapNaviSDK.Point? = nil, routeOption: [TmapNaviSDK.PlanningOption] = [.recommend, .minTime], wayPoints: [TmapNaviSDK.Point] = [], guideWithoutPreview: Swift.Bool = false)
+  @discardableResult
+  public func continueDrive(guideWithoutPreview: Swift.Bool = true) -> Swift.Bool
+  public func clearContinueDriveInfo()
+  public func requestSafeDrive()
+  public func requestStop()
+  public func toNextViaPointRequest() -> Swift.Bool
+}
+extension TmapUISDK.TmapUISDKManager {
+  public func injectLocationLog(absoluteLogPath: Foundation.URL?)
+}
+extension TmapUISDK.TmapUISDKManager {
+  public func setCustomRoute()
+  public func showLogSetting()
+}
+extension TmapUISDK.TmapUISDKManager {
+  public var version: Swift.String? {
+    get
+  }
+}
+extension TmapUISDK.TmapUISDKManager {
+  public func resume()
+  public func pause()
+}
+extension TmapUISDK.TmapUISDKManager {
+  public var driveGuidePublisher: Combine.AnyPublisher<TmapUISDK.TmapDriveGuide?, Swift.Never> {
+    get
+  }
+  public var driveStatusPublisher: Combine.AnyPublisher<TmapNaviSDK.DriveStatus?, Swift.Never> {
+    get
+  }
+}
+public struct TmapDriveGuideSDI : Swift.Encodable {
+  public var sdiType: TmapNaviSDK.SDIType
+  public var sdiDistance: Swift.Int
+  public var sdiSpeedLimit: Swift.Int
+  public var sdiIsBlockSection: Swift.Bool
+  public var sdiBlockDistance: Swift.Int
+  public var sdiBlockSpeed: Swift.Int
+  public var sdiBlockAverageSpeed: Swift.Int
+  public var sdiBlockTime: Swift.Int
+  public var isChangableSpeedType: Swift.Bool
+  public var isLimitSpeedSignChanged: Swift.Bool
+  public var truckLimit: Swift.String?
+  public func encode(to encoder: any Swift.Encoder) throws
+}
+public struct TmapDriveGuideTBT : Swift.Encodable {
+  public var tbtDistance: Swift.Int
+  public var tbtTime: Swift.Int
+  public var tbtTurnType: TmapNaviSDK.TBTTurnType
+  public var tollfee: Swift.Int
+  public var roadName: Swift.String
+  public var crossName: Swift.String
+  public var nearDirectionName: Swift.String
+  public var midDirectionName: Swift.String
+  public var farDirectionName: Swift.String
+  public var mainText: Swift.String
+  public var complexIntersectionVoiceType: TmapNaviSDK.ComplexIntersectionVoiceType?
+  public func encode(to encoder: any Swift.Encoder) throws
+}
+public struct TmapDriveGuideRemainViaPoint : Swift.Encodable {
+  public var viaIndex: Swift.Int
+  public var viaName: Swift.String?
+  public var viaDistance: Swift.Int
+  public var viaTime: Swift.Int
+  public var latitude: Swift.Double?
+  public var longitude: Swift.Double?
+  public func encode(to encoder: any Swift.Encoder) throws
+}
+public struct TmapDriveGuideLane : Swift.Encodable {
+  public var showLane: Swift.Bool
+  public var laneCount: Swift.Int
+  public var laneDistance: Swift.Int
+  public var nLaneTurnInfo: [[TmapNaviSDK.LaneTurnType]]
+  public var nLaneEtcInfo: [[TmapNaviSDK.LaneEtcType]]
+  public var availableTurn: TmapNaviSDK.LaneTurnType?
+  public var hipassLaneInfo: [Swift.Int]
+  public func encode(to encoder: any Swift.Encoder) throws
+}
+public struct CodableImage : Swift.Codable {
+  public init(from decoder: any Swift.Decoder) throws
+  public func encode(to encoder: any Swift.Encoder) throws
+}
+public struct TmapDriveGuide : Swift.Encodable {
+  public var speedInKmPerHour: Swift.Int
+  public var isShadeArea: Swift.Bool
+  public var noLocationSignal: Swift.Bool
+  public var gpsState: TmapNaviSDK.GpsStatus
+  public var isNightMode: Swift.Bool
+  public var currentRoadName: Swift.String?
+  public var laneInfo: TmapUISDK.TmapDriveGuideLane?
+  public var showSDI: Swift.Bool
+  public var isCaution: Swift.Bool
+  public var averageSpeed: Swift.Int
+  public var limitSpeed: Swift.Int
+  public var firstSDIInfo: TmapUISDK.TmapDriveGuideSDI?
+  public var secondSDIInfo: TmapUISDK.TmapDriveGuideSDI?
+  public var hasTbtInfo: Swift.Bool
+  public var firstTBTInfo: TmapUISDK.TmapDriveGuideTBT?
+  public var secondTBTInfo: TmapUISDK.TmapDriveGuideTBT?
+  public var remainDistanceToDestinationInMeter: Swift.Int
+  public var remainTimeToDestinationInSec: Swift.Int
+  public var remainViaPointSize: Swift.Int
+  public var remainDistanceToGoPositionInMeter: Swift.Int
+  public var remainTimeToGoPositionInSec: Swift.Int
+  public var remainViaPoint: [TmapUISDK.TmapDriveGuideRemainViaPoint]
+  public var matchedLatitude: Swift.Double?
+  public var matchedLongitude: Swift.Double?
+  public var currentCourseAngle: Swift.Int
+  public var crossRoadBitmap: TmapUISDK.CodableImage?
+  public var destinationName: Swift.String?
+  public var destinationLatitude: Swift.Double?
+  public var destinationLongitude: Swift.Double?
+  public var planningOption: TmapNaviSDK.PlanningOption?
+  public func encode(to encoder: any Swift.Encoder) throws
+}
+extension TmapNaviSDK.RouteInfo {
+  public enum RouteOption : Swift.UInt {
+    case `default`
+    case free
+    case minTime
+    case beginner
+    case highway
+    case shortestPath
+    case nonHighway
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum ForceRerouteOption : Swift.UInt {
+    case `default`
+    case waypoint
+    case trafficInfo
+    case alternative
+    case congested
+    case directionalDest
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum FarePriority : Swift.UInt {
+    case none
+    case optimize
+    case min
+    case free
+    case `default`
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum RoadControlCode : Swift.UInt {
+    case none
+    case exist
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum DepartDayCode : Swift.UInt {
+    case weekday
+    case saturday
+    case holiday
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum CoordidateType : Swift.UInt {
+    case bessel
+    case WG84
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum TileType : Swift.UInt {
+    case type2047_1
+    case type2047_2
+    case type4095_1
+    case type4095_2
+    case type9999_1
+    case type9999_2
+    case type2048
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum LinkType : Swift.UInt {
+    case none
+    case mainRoad1
+    case mainRoad2
+    case jc
+    case crossPoint
+    case ic
+    case sa
+    case rotary
+    case uTurn
+    case pTurn
+    case rest
+    case `return`
+    case crossRoad
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum RoadType : Swift.UInt {
+    case highway
+    case motorway
+    case nationalRoad
+    case provincialRoad1
+    case provincialRoad2
+    case principalRoad1
+    case principalRoad2
+    case principalRoad3
+    case etcRoad1
+    case etcRoad2
+    case ferryLine
+    case apartmentRoad
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum LinkFacilityType : Swift.UInt {
+    case normal
+    case bridge
+    case tunnel
+    case overpass
+    case underpass
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum GuidePointType : Swift.UInt {
+    case mapPoint
+    case mapTile
+    case noneHighway
+    case noneGeneralway
+    case noneParticularWay
+    case noneYCrossRight
+    case noneYCrosLeft
+    case straight
+    case leftTurn
+    case rightTurn
+    case uTurn
+    case pTurn
+    case leftTurnTo8
+    case leftTurnTo10
+    case rightTurnTo2
+    case rightTurnTo4
+    case highwayEntranceOnRight
+    case highwayEntranceOnLeft
+    case highwayEntranceOnStraight
+    case highwayExitOnRight
+    case highwayExitOnLeft
+    case highwayExitOnStraight
+    case cityHighwayEntranceOnRight
+    case cityHighwayEntranceOnLeft
+    case cityHighwayEntranceOnStraight
+    case cityHighwayExitOnRight
+    case cityHighwayExitOnLeft
+    case cityHighwayExitOnStraight
+    case roadOnRight
+    case roadOnLeft
+    case underpass
+    case overpasss
+    case tunnel
+    case bridge
+    case besideUnderpass
+    case besideOverpass
+    case direction1
+    case direction2
+    case direction3
+    case direction4
+    case direction5
+    case direction6
+    case direction7
+    case direction8
+    case direction9
+    case direction10
+    case direction11
+    case direction12
+    case rest
+    case serviceArea
+    case serviceAreaEnterance
+    case highwayTollgate
+    case tollgate
+    case waypoint
+    case waypoint1
+    case waypoint2
+    case waypoint3
+    case waypoint4
+    case waypoint5
+    case source
+    case destination
+    case oppositeDestination
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum ContinuousTurnFlag : Swift.UInt {
+    case none
+    case highway
+    case generalway
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum DirectionGuideType : Swift.UInt {
+    case none
+    case text
+    case voice
+    case all
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum DirectionImageFlag : Swift.UInt {
+    case highway
+    case generalway
+    case all
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum DirectionNameType : Swift.UInt {
+    case cross
+    case direction
+    case crossByServer
+    case destination
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum MultiCrossInfoType : Swift.UInt {
+    case none
+    case png
+    case jpg
+    case gif
+    case evrc
+    case mmf
+    case pngAndEvrc
+    case pngAndMmf
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum MultiCrossVoiceType : Swift.UInt {
+    case stright
+    case left
+    case right
+    case lane1
+    case lane2
+    case lane3
+    case lane4
+    case lane5
+    case lane6
+    case lane7
+    case lane8
+    case lane9
+    case lane10
+    case exit1
+    case exit2
+    case rightWay1
+    case rightWay2
+    case leftWay1
+    case leftWay2
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum GasStationBrand : Swift.UInt {
+    case none
+    case sk
+    case gs
+    case hOil
+    case sOil
+    case tOil
+    case nonePole
+    case skGas
+    case gsGas
+    case hGas
+    case sOilGas
+    case lpgNonePole
+    case unconfirmed
+    case e1
+    case skInchon
+    case skInchoneGas
+    case ncOil
+    case ncOilGas
+    case nhOil
+    case nhOilGas
+    case sevenDOil
+    case sevenDOilGas
+    case ecomomic
+    case exGas
+    case exOil
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum TollgateCarType : Swift.UInt {
+    case unconfirmed
+    case passengerCar
+    case miniVans
+    case fullSizeVans
+    case truck
+    case particularTruck
+    case compactCar
+    case motorBike
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum TollgateType : Swift.UInt {
+    case none
+    case open
+    case close
+    case ic
+    case jc
+    case exitIc
+    case sa
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum TollgateCongestion : Swift.UInt {
+    case smooth
+    case slow
+    case delay
+    case noInfo
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum GasStationType : Swift.UInt {
+    case oil
+    case lpg
+    case oilLpg
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public struct GasStationOption : Swift.OptionSet, Swift.Hashable {
+    public let rawValue: Swift.Int
+    public init(rawValue: Swift.Int)
+    public static let carWash: TmapNaviSDK.RouteInfo.GasStationOption
+    public static let repair: TmapNaviSDK.RouteInfo.GasStationOption
+    public static let convenience: TmapNaviSDK.RouteInfo.GasStationOption
+    public static let toilet: TmapNaviSDK.RouteInfo.GasStationOption
+    public typealias ArrayLiteralElement = TmapNaviSDK.RouteInfo.GasStationOption
+    public typealias Element = TmapNaviSDK.RouteInfo.GasStationOption
+    public typealias RawValue = Swift.Int
+  }
+  public enum PremiumOilSellingInfo : Swift.UInt {
+    case unconfirmed
+    case selling
+    case noSelling
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum DangerAreaType : Swift.UInt {
+    case none
+    case fixedSpeed
+    case flexibleSpeed
+    case accident
+    case curve
+    case fog
+    case signalAndSpeed
+    case bus
+    case shoulder
+    case fallingRock
+    case trafficInfo
+    case sectionBegin
+    case sectionEnd
+    case cut
+    case signal
+    case railCross
+    case childProtectionBegin
+    case childProtectionEnd
+    case wildlife
+    case bump
+    case parking
+    case fixedSpeedBox
+    case pedestrianAccident
+    case freezing
+    case oldDieselCar
+    case laneChangeInTunnel
+    case variableSpeedSectionBegin
+    case variableSpeedSectionEnd
+    case oppositeOfGoal
+    case rest
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum BusLaneType : Swift.UInt {
+    case none
+    case rightLaneAll
+    case rightLanePart
+    case centerLaneAll
+    case centerLanePart
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum TollgateGateType : Swift.UInt {
+    case entrance
+    case exit
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum TvasHipassPositionType : Swift.UInt {
+    case mainRoad
+    case noneMainRoad
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum DetailPositionType : Swift.UInt {
+    case highway
+    case motorway
+    case overpass
+    case underpass
+    case generalRoad
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum LinkDirection : Swift.UInt {
+    case positive
+    case negative
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum CityCode : Swift.UInt {
+    case seoul
+    case busan
+    case daegu
+    case incheon
+    case gwangju
+    case daejeon
+    case ulsan
+    case sejong
+    case gyeonggi
+    case suwon
+    case seongnam
+    case uijeongbu
+    case anyang
+    case bucheon
+    case gwangmyeong
+    case pyeongTaek
+    case dongducheon
+    case ansan
+    case goyang
+    case gwacheon
+    case guri
+    case namyangju
+    case osan
+    case siheung
+    case gunpo
+    case uiwang
+    case hanam
+    case yongin
+    case paju
+    case icheon
+    case anseong
+    case gimpo
+    case hwaseong
+    case gyeonggiGwangju
+    case yangju
+    case pocheon
+    case gangwon
+    case chunCheon
+    case wonju
+    case gangneung
+    case donghae
+    case taebaek
+    case sokcho
+    case samcheok
+    case chungbuk
+    case cheongju
+    case chungju
+    case jecheon
+    case chungnam
+    case cheonan
+    case gongju
+    case boryeong
+    case asan
+    case seosan
+    case nonsan
+    case gyeryong
+    case dangjin
+    case jeonbuk
+    case jeonju
+    case gunsan
+    case iksan
+    case jeongeup
+    case namwon
+    case gimje
+    case jeonnam
+    case mokpo
+    case yeosu
+    case suncheon
+    case naju
+    case gwangyang
+    case gyeongbuk
+    case pohang
+    case gyeongju
+    case gimcheon
+    case andong
+    case gumi
+    case yeongju
+    case yeongcheon
+    case sangju
+    case mungyeong
+    case gyeongsan
+    case gyeongnam
+    case changwon
+    case jinju
+    case tongyeong
+    case sacheon
+    case gimhae
+    case miryang
+    case geoje
+    case yangsan
+    case jeju
+    case seogwipo
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public enum RouteSummaryGuideType : Swift.UInt {
+    case name
+    case nameVoice
+    case voice
+    case max
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  public struct RouteRoadIncludes : Swift.OptionSet, Swift.Hashable {
+    public let rawValue: Swift.Int
+    public init(rawValue: Swift.Int)
+    public static let motorway: TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public static let ferry: TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public static let hipassOnly: TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public static let fireFighting: TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public static let freightLimit: TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public static let narrow: TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public static let offroad: TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public typealias ArrayLiteralElement = TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public typealias Element = TmapNaviSDK.RouteInfo.RouteRoadIncludes
+    public typealias RawValue = Swift.Int
+  }
+}
+extension UIKit.UIColor {
+  public func hsba() -> (hue: CoreFoundation.CGFloat, saturation: CoreFoundation.CGFloat, brightness: CoreFoundation.CGFloat, alpha: CoreFoundation.CGFloat)?
+  public func changedBrightness(_ percent: CoreFoundation.CGFloat) -> UIKit.UIColor?
+  public func lightened(_ percentage: CoreFoundation.CGFloat = 0.1) -> UIKit.UIColor?
+  public func darkened(_ percentage: CoreFoundation.CGFloat = 0.1) -> UIKit.UIColor?
+  public func changedSaturation(_ percent: CoreFoundation.CGFloat) -> UIKit.UIColor?
+  public func tinted(_ percentage: CoreFoundation.CGFloat = 0.1) -> UIKit.UIColor?
+  public func shaded(_ percentage: CoreFoundation.CGFloat = 0.1) -> UIKit.UIColor?
+}
+extension UIKit.UIButton {
+  @_Concurrency.MainActor @preconcurrency public var tapPublisher: Combine.AnyPublisher<Swift.Void, Swift.Never> {
+    get
+  }
+}
+public enum UISDKCarModel : Swift.String, Swift.Codable, Swift.CaseIterable {
+  case compact
+  case normal
+  case middle
+  case large
+  case smallTruck
+  case truck
+  case special
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [TmapUISDK.UISDKCarModel]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [TmapUISDK.UISDKCarModel] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum MapViewFunctionType {
+  case routePreview
+  case drive
+  public static func == (a: TmapUISDK.MapViewFunctionType, b: TmapUISDK.MapViewFunctionType) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol UISDKMapViewDelegate {
+  func viewDidLoad(_ mapView: VSMSDK.VSMNavigationView, mapViewType type: TmapUISDK.MapViewFunctionType)
+  func viewWillAppear(_ mapView: VSMSDK.VSMNavigationView, mapViewType type: TmapUISDK.MapViewFunctionType)
+  func viewDidAppear(_ mapView: VSMSDK.VSMNavigationView, mapViewType type: TmapUISDK.MapViewFunctionType)
+  func viewWillDisappear(_ mapView: VSMSDK.VSMNavigationView, mapViewType type: TmapUISDK.MapViewFunctionType)
+  func viewDidDisappear(_ mapView: VSMSDK.VSMNavigationView, mapViewType type: TmapUISDK.MapViewFunctionType)
+  func markerSelected(_ marker: VSMSDK.VSMMarkerBase, addedMapView mapView: VSMSDK.VSMNavigationView, mapViewType type: TmapUISDK.MapViewFunctionType) -> Swift.Bool
+  func calloutPopupSelected(_ marker: VSMSDK.VSMMarkerBase, addedMapView mapView: VSMSDK.VSMNavigationView, mapViewType type: TmapUISDK.MapViewFunctionType) -> Swift.Bool
+}
+public struct UISDKTruckOption : Swift.Decodable {
+  public init(truckHeight: Swift.Int? = nil, truckLoadingWeight: Swift.Int? = nil, truckType: TmapNaviSDK.TruckType? = nil, truckWidth: Swift.Int? = nil, truckLength: Swift.Int? = nil)
+  public var truckHeight: Swift.Int?
+  public var truckLoadingWeight: Swift.Int?
+  public var truckType: TmapNaviSDK.TruckType?
+  public var truckWidth: Swift.Int?
+  public var truckLength: Swift.Int?
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct UISDKConfigOption : Swift.Decodable {
+  public var carType: TmapUISDK.UISDKCarModel
+  public var truckOption: TmapUISDK.UISDKTruckOption?
+  public var fuelType: TmapUISDK.UISDKFuel
+  public var showTrafficAccident: Swift.Bool
+  public var mapTextSize: TmapUISDK.UISDKMapFontSize
+  public var nightMode: TmapUISDK.UISDKAutoNightModeType
+  public var isUseSpeedReactMapScale: Swift.Bool
+  public var isShowTrafficInRoute: Swift.Bool
+  public var mapViewDelegate: (any TmapUISDK.UISDKMapViewDelegate)?
+  public var showExitPopupWhenStopDriving: Swift.Bool
+  public var useRealTimeAutoReroute: Swift.Bool
+  public init()
+  public mutating func updateMapViewDelegate(delegate: any TmapUISDK.UISDKMapViewDelegate)
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct UISDKError : Swift.Error {
+}
+public enum UISDKFuel : Swift.String, Swift.Codable, Swift.CaseIterable {
+  case gas
+  case diesel
+  case lpg
+  case gaspm
+  case ev
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [TmapUISDK.UISDKFuel]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [TmapUISDK.UISDKFuel] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum UISDKMapFontSize : Swift.String, Swift.CaseIterable, Swift.Codable {
+  case small
+  case medium
+  case large
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [TmapUISDK.UISDKMapFontSize]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [TmapUISDK.UISDKMapFontSize] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum UISDKAutoNightModeType : Swift.String, Swift.CaseIterable, Swift.Codable {
+  case auto
+  case allways
+  case never
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [TmapUISDK.UISDKAutoNightModeType]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [TmapUISDK.UISDKAutoNightModeType] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct UISDKInitOption : Swift.Decodable {
+  public var clientServiceName: Swift.String
+  public var clientAppVersion: Swift.String
+  public var clientID: Swift.String
+  public var clientApiKey: Swift.String
+  public var clientApCode: Swift.String
+  public var userKey: Swift.String
+  public var deviceKey: Swift.String
+  public var clientDeviceId: Swift.String
+  public var uiWindow: UIKit.UIWindow?
+  public init()
+  public mutating func update(uiWindow: UIKit.UIWindow?)
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct UISDKPermission : Swift.Equatable {
+  public init(locationRequest: TmapNaviSDK.LocationRequestType = [])
+  public var locationRequest: TmapNaviSDK.LocationRequestType
+  public var isEmpty: Swift.Bool {
+    get
+  }
+  public static func == (a: TmapUISDK.UISDKPermission, b: TmapUISDK.UISDKPermission) -> Swift.Bool
+}
+public struct UISDKRoutePoint : Swift.Decodable {
+  public var longitude: Swift.Double
+  public var latitude: Swift.Double
+  public var name: Swift.String
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct UISDKRequestRouteData : Swift.Decodable {
+  public var source: TmapUISDK.UISDKRoutePoint?
+  public var destination: TmapUISDK.UISDKRoutePoint?
+  public var wayPoints: [TmapUISDK.UISDKRoutePoint]?
+  public var options: [TmapNaviSDK.PlanningOption]?
+  public var guideWithoutPreview: Swift.Bool
+  public var safeDriving: Swift.Bool
+  public var continueDriving: Swift.Bool
+  public init(from decoder: any Swift.Decoder) throws
+}
+public enum UISDKState : Swift.Equatable {
+  public static func == (lhs: TmapUISDK.UISDKState, rhs: TmapUISDK.UISDKState) -> Swift.Bool
+  case none
+  case mapInitializing
+  case requestingAuth
+  case vsmError(TmapUISDK.VSMInitializerError)
+  case authError(TmapNaviSDK.AuthenticationErrorType)
+  case completed
+  case ready
+  case dismissReq
+  case dismissNRequestPermission(TmapUISDK.UISDKPermission)
+  case requestPermission(TmapUISDK.UISDKPermission)
+  case finished
+  case savedDriveInfo(Swift.String?)
+  case continueDriveRequestedButNoSavedDriveInfo
+  public var description: Swift.String {
+    get
+  }
+}
+extension UIKit.UIView {
+  @objc @_Concurrency.MainActor @preconcurrency public static func showMessage(_ message: Swift.String)
+}
+extension UIKit.UIViewController {
+  @objc @_Concurrency.MainActor @preconcurrency dynamic public func dismissVisibleViewController(isAnimated: Swift.Bool = true)
+}
+public struct VSMInitializerError : Swift.Error, Swift.Equatable {
+  public static func == (a: TmapUISDK.VSMInitializerError, b: TmapUISDK.VSMInitializerError) -> Swift.Bool
+}
+extension VSMSDK.VSMTileID : Swift.Equatable {
+  public static func == (lhs: VSMSDK.VSMTileID, rhs: VSMSDK.VSMTileID) -> Swift.Bool
+}
+extension TmapNaviSDK.RouteInfo.RouteOption : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.RouteOption : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.RouteOption : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.ForceRerouteOption : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.ForceRerouteOption : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.ForceRerouteOption : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.FarePriority : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.FarePriority : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.FarePriority : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.RoadControlCode : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.RoadControlCode : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.RoadControlCode : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.DepartDayCode : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.DepartDayCode : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.DepartDayCode : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.CoordidateType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.CoordidateType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.CoordidateType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.TileType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.TileType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.TileType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.LinkType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.LinkType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.LinkType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.RoadType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.RoadType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.RoadType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.LinkFacilityType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.LinkFacilityType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.LinkFacilityType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.GuidePointType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.GuidePointType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.GuidePointType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.ContinuousTurnFlag : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.ContinuousTurnFlag : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.ContinuousTurnFlag : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.DirectionGuideType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.DirectionGuideType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.DirectionGuideType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.DirectionImageFlag : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.DirectionImageFlag : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.DirectionImageFlag : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.DirectionNameType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.DirectionNameType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.DirectionNameType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.MultiCrossInfoType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.MultiCrossInfoType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.MultiCrossInfoType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.MultiCrossVoiceType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.MultiCrossVoiceType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.MultiCrossVoiceType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.GasStationBrand : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.GasStationBrand : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.GasStationBrand : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.TollgateCarType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.TollgateCarType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.TollgateCarType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.TollgateType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.TollgateType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.TollgateType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.TollgateCongestion : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.TollgateCongestion : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.TollgateCongestion : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.GasStationType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.GasStationType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.GasStationType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.PremiumOilSellingInfo : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.PremiumOilSellingInfo : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.PremiumOilSellingInfo : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.DangerAreaType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.DangerAreaType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.DangerAreaType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.BusLaneType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.BusLaneType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.BusLaneType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.TollgateGateType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.TollgateGateType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.TollgateGateType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.TvasHipassPositionType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.TvasHipassPositionType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.TvasHipassPositionType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.DetailPositionType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.DetailPositionType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.DetailPositionType : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.LinkDirection : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.LinkDirection : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.LinkDirection : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.CityCode : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.CityCode : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.CityCode : Swift.RawRepresentable {}
+extension TmapNaviSDK.RouteInfo.RouteSummaryGuideType : Swift.Equatable {}
+extension TmapNaviSDK.RouteInfo.RouteSummaryGuideType : Swift.Hashable {}
+extension TmapNaviSDK.RouteInfo.RouteSummaryGuideType : Swift.RawRepresentable {}
+extension TmapUISDK.UISDKCarModel : Swift.Equatable {}
+extension TmapUISDK.UISDKCarModel : Swift.Hashable {}
+extension TmapUISDK.UISDKCarModel : Swift.RawRepresentable {}
+extension TmapUISDK.MapViewFunctionType : Swift.Equatable {}
+extension TmapUISDK.MapViewFunctionType : Swift.Hashable {}
+extension TmapUISDK.UISDKFuel : Swift.Equatable {}
+extension TmapUISDK.UISDKFuel : Swift.Hashable {}
+extension TmapUISDK.UISDKFuel : Swift.RawRepresentable {}
+extension TmapUISDK.UISDKMapFontSize : Swift.Equatable {}
+extension TmapUISDK.UISDKMapFontSize : Swift.Hashable {}
+extension TmapUISDK.UISDKMapFontSize : Swift.RawRepresentable {}
+extension TmapUISDK.UISDKAutoNightModeType : Swift.Equatable {}
+extension TmapUISDK.UISDKAutoNightModeType : Swift.Hashable {}
+extension TmapUISDK.UISDKAutoNightModeType : Swift.RawRepresentable {}

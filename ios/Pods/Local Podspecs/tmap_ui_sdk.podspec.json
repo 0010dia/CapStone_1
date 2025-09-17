@@ -1,0 +1,30 @@
+{
+  "name": "tmap_ui_sdk",
+  "version": "1.0.0",
+  "summary": "TmapUISDK for flutter",
+  "homepage": "https://www.tmapmobility.com/",
+  "license": {
+    "type": "Copyright",
+    "text": "Copyright (c) TMAP mobility corp. All rights reserved."
+  },
+  "authors": "TMAP mobility corp.",
+  "source": {
+    "path": "."
+  },
+  "source_files": "Classes/**/*",
+  "dependencies": {
+    "Flutter": [],
+    "TmapUISDK": [
+      "1.0.33"
+    ]
+  },
+  "platforms": {
+    "ios": "13.0"
+  },
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES",
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "i386"
+  },
+  "swift_versions": "5.0",
+  "swift_version": "5.0"
+}

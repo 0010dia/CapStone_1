@@ -1,0 +1,139 @@
+PODS:
+  - Alamofire (5.7.1)
+  - AloeStackView (1.2.0)
+  - CocoaSecurity (1.2.4)
+  - CombineCocoa (0.4.1)
+  - CombineExt (1.8.0)
+  - FlexLayout (1.3.33)
+  - Flutter (1.0.0)
+  - fluttertoast (0.0.2):
+    - Flutter
+  - Interpolate (1.3.1)
+  - KeychainAccess (4.2.2)
+  - Kingfisher (7.6.2)
+  - MarqueeLabel (4.3.0)
+  - permission_handler_apple (9.3.0):
+    - Flutter
+  - PinLayout (1.10.4)
+  - ReactorKit (3.2.0):
+    - RxSwift (~> 6.0)
+    - WeakMapTable (~> 1.1)
+  - RxCocoa (6.5.0):
+    - RxRelay (= 6.5.0)
+    - RxSwift (= 6.5.0)
+  - RxGesture (4.0.4):
+    - RxCocoa (~> 6.0)
+    - RxSwift (~> 6.0)
+  - RxRelay (6.5.0):
+    - RxSwift (= 6.5.0)
+  - RxSwift (6.5.0)
+  - Solar (2.1.0)
+  - SwiftReorder (7.2.0)
+  - SwiftSimplify (1.1.1)
+  - TinyConstraints (4.0.2)
+  - tmap_ui_sdk (1.0.0):
+    - Flutter
+    - TmapUISDK (= 1.0.33)
+  - TmapNaviSDK (1.0.33)
+  - TmapUISDK (1.0.33):
+    - Alamofire
+    - AloeStackView
+    - CocoaSecurity
+    - CombineCocoa
+    - CombineExt
+    - FlexLayout
+    - Interpolate
+    - KeychainAccess
+    - Kingfisher
+    - MarqueeLabel
+    - PinLayout
+    - ReactorKit
+    - RxCocoa
+    - RxGesture
+    - RxSwift
+    - Solar
+    - SwiftReorder
+    - SwiftSimplify
+    - TinyConstraints
+    - TmapNaviSDK (= 1.0.33)
+    - VSMSDK (= 1.6.102)
+  - VSMSDK (1.6.102)
+  - WeakMapTable (1.2.0)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - tmap_ui_sdk (from `.symlinks/plugins/tmap_ui_sdk/ios`)
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - Alamofire
+    - AloeStackView
+    - CocoaSecurity
+    - CombineCocoa
+    - CombineExt
+    - FlexLayout
+    - Interpolate
+    - KeychainAccess
+    - Kingfisher
+    - MarqueeLabel
+    - PinLayout
+    - ReactorKit
+    - RxCocoa
+    - RxGesture
+    - RxRelay
+    - RxSwift
+    - Solar
+    - SwiftReorder
+    - SwiftSimplify
+    - TinyConstraints
+    - WeakMapTable
+  https://github.com/TmapSDK/iosSDK.git:
+    - TmapNaviSDK
+    - TmapUISDK
+    - VSMSDK
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  fluttertoast:
+    :path: ".symlinks/plugins/fluttertoast/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+  tmap_ui_sdk:
+    :path: ".symlinks/plugins/tmap_ui_sdk/ios"
+
+SPEC CHECKSUMS:
+  Alamofire: 0123a34370cb170936ae79a8df46cc62b2edeb88
+  AloeStackView: 8a4ce0efa08128dd78d538372f60c76c224034bb
+  CocoaSecurity: d288a6f87e0f363823d2cb83e753814a6944f71a
+  CombineCocoa: e5210dbfb480ff251078929459ac17e750e7af1d
+  CombineExt: c4daa97ef75754d8ef319bd79edeef82652f3eea
+  FlexLayout: d515437814cc7a6b50d6d2d14da7cd8059f8d6f6
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
+  Interpolate: 490b5a7bdaeb00f86c69b61aa87cab59f6f8d703
+  KeychainAccess: c0c4f7f38f6fc7bbe58f5702e25f7bd2f65abf51
+  Kingfisher: 6c5449c6450c5239166510ba04afe374a98afc4f
+  MarqueeLabel: 02f5ac8fd6877c94564556cb93fa86c70c08baeb
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  PinLayout: f8a677ce0cd1cfe96b58435d029b4ceb4ce9c04c
+  ReactorKit: e8b11d6b9c415405f381669b095c154a05b59eca
+  RxCocoa: 94f817b71c07517321eb4f9ad299112ca8af743b
+  RxGesture: f3efb47ed2d26a8082f7b660d4a59970e275a7f8
+  RxRelay: 1de1523e604c72b6c68feadedd1af3b1b4d0ecbd
+  RxSwift: 5710a9e6b17f3c3d6e40d6e559b9fa1e813b2ef8
+  Solar: 2dc6e7cc39186cb0c8228fa08df76fb50c7d8f24
+  SwiftReorder: d687883abf5f2327268e006b038025a6fc515e34
+  SwiftSimplify: bac27d83b8ffa827534c3fb8971e2e0ccf806c4a
+  TinyConstraints: 7b7ccc0c485bb3bb47082138ff28bc33cd49897f
+  tmap_ui_sdk: 2efebd84dbbce727c26d9e28d39905ee0e85cc9f
+  TmapNaviSDK: 8a489899c9b39c0e5c6a9a3350c45f30416c05f8
+  TmapUISDK: 02ef45b6a619db5cd5ce03a1b73f6081172a97cc
+  VSMSDK: db5ac53066f1614c109a04b68473afbfa4b3927e
+  WeakMapTable: 05c694ce8439a7a9ebabb56187287a63c57673d6
+
+PODFILE CHECKSUM: d075db75ffddd222f7807ae19d24b518e7605215
+
+COCOAPODS: 1.16.2

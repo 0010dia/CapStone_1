@@ -1,0 +1,6 @@
+framework module tmap_ui_sdk {
+  umbrella header "tmap_ui_sdk-umbrella.h"
+
+  export *
+  module * { export * }
+}
