@@ -1,35 +1,44 @@
-name: flutter_navi_sdk_sample
+name: capstone_project
 description: flutter navi sdk sample
-
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.19.6 <3.0.0'
+  sdk: '>=3.2.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
-  go_router: ^16.0.0
+  # ⭐️ 웹뷰 관련 패키지 버전을 최신 호환 버전으로 명시합니다.
+  webview_flutter: ^4.7.0
+  webview_flutter_android: ^3.16.0
+
+  # 나머지 필수 패키지
+  permission_handler: ^11.3.1
+  http: ^1.2.1
   cupertino_icons: ^1.0.2
-  provider: ^6.0.5
-  permission_handler: ^12.0.1
-  fluttertoast: ^8.2.2
+
+  # kpostal은 삭제합니다.
 
   tmap_ui_sdk:
     git:
-      url: https://github.com/0010dia/TmapUI_FlutterSDK.git # 본인이 Fork한 저장소 주소
-      ref: main # 수정한 브랜치 이름
+      url: https://github.com/0010dia/TmapUI_FlutterSDK.git
+      ref: main
+  flutter_speed_dial: ^7.0.0
+  intl: ^0.20.2
+  shared_preferences: ^2.5.3
+  fl_chart: ^0.68.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  flutter_lints: ^6.0.0
+  flutter_lints: ^2.0.0
 
 flutter:
-  assets:
-    - assets/img.PNG
-
   uses-material-design: true
+  assets:
+    - assets/
+
+

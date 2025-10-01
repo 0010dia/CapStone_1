@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
 FLUTTER_ROOT=/opt/homebrew/share/flutter
-FLUTTER_APPLICATION_PATH=/Users/yeongjunna/Downloads/[Flutter]Navi_SDK_1.23/sample/flutter_navi_sdk_sample
+FLUTTER_APPLICATION_PATH=/Users/yeongjunna/Downloads/[Flutter]Navi_SDK_1.23/sample/capstone_project
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib/main.dart
 FLUTTER_BUILD_DIR=build
