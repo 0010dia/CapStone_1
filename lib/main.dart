@@ -1,42 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'home.dart';
 import 'navi.dart';
 import 'notifications.dart';
 import 'more.dart';
 import 'fuel_record_page.dart';
-import 'login_page.dart'; // 로그인 페이지 import
+import 'login_page.dart';
+import 'firebase_options.dart';
 
 void main() async {
-  // main 함수에서 비동기 작업을 수행하기 위해 async로 변경하고 아래 2줄 추가
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting();
 
-  // SharedPreferences 인스턴스를 가져옵니다.
-  final prefs = await SharedPreferences.getInstance();
-  // 'isLoggedIn' 키의 값을 읽어옵니다. 값이 없으면 false를 기본값으로 사용합니다.
-  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  // ✅ Firebase 초기화
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  runApp(MyCarApp(isLoggedIn: isLoggedIn)); // MyCarApp에 로그인 상태 전달
+  runApp(const MyCarApp());
 }
 
 class MyCarApp extends StatelessWidget {
-  final bool isLoggedIn;
-
-  // 생성자를 통해 로그인 상태를 받습니다.
-  const MyCarApp({super.key, required this.isLoggedIn});
+  const MyCarApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '신속정확배달',
-      // isLoggedIn 값에 따라 첫 화면을 결정합니다.
-      // true이면 MainPage, false이면 LoginPage 를 보여줍니다.
-      home: isLoggedIn ? const MainPage() : const MainPage(),
       debugShowCheckedModeBanner: false,
+      // ✅ FirebaseAuth 상태에 따라 로그인 여부를 자동으로 감지
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          // Firebase 초기화 중 로딩 표시
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          // 로그인 상태라면 메인 페이지로
+          if (snapshot.hasData) {
+            return const MainPage();
+          }
+
+          // 로그아웃 상태라면 로그인 페이지로
+          return const LoginPage();
+        },
+      ),
     );
   }
 }
@@ -66,6 +81,11 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  // 🔹 로그아웃 기능 추가
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,12 +93,21 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(_pageLabels[_selectedIndex],
-            style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 25)),
+        title: Text(
+          _pageLabels[_selectedIndex],
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 25,
+          ),
+        ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.red),
+            onPressed: _logout, // ✅ 로그아웃 버튼
+          ),
+        ],
       ),
       body: _widgetOptions.elementAt(_selectedIndex),
       floatingActionButton: _selectedIndex == 0 ? _buildSpeedDial() : null,
