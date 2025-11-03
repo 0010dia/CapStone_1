@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // ✅ Firebase Auth 추가
+import 'login_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -8,16 +10,15 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  // 각 입력 필드의 유효성 검사 상태를 추적하기 위한 GlobalKey
   final _formKey = GlobalKey<FormState>();
 
-  // 입력된 텍스트를 제어하기 위한 컨트롤러
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _nicknameController = TextEditingController();
 
-  // 위젯이 dispose될 때 컨트롤러도 정리하여 메모리 누수 방지
+  bool _isLoading = false;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -25,6 +26,63 @@ class _SignUpPageState extends State<SignUpPage> {
     _confirmPasswordController.dispose();
     _nicknameController.dispose();
     super.dispose();
+  }
+
+  // ✅ Firebase 회원가입 함수
+  Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Firebase 이메일/비밀번호 회원가입
+      UserCredential userCredential =
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // ✅ 닉네임(표시 이름) 업데이트
+      await userCredential.user!.updateDisplayName(_nicknameController.text);
+
+      // ✅ 회원가입 성공 시 스낵바 표시
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('회원가입이 완료되었습니다!')),
+        );
+
+        // 로그인 페이지로 이동
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'email-already-in-use') {
+        message = '이미 사용 중인 이메일입니다.';
+      } else if (e.code == 'invalid-email') {
+        message = '이메일 형식이 올바르지 않습니다.';
+      } else if (e.code == 'weak-password') {
+        message = '비밀번호가 너무 약합니다.';
+      } else {
+        message = '회원가입에 실패했습니다. (${e.message})';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류가 발생했습니다: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -35,12 +93,11 @@ class _SignUpPageState extends State<SignUpPage> {
         elevation: 0,
       ),
       body: GestureDetector(
-        // 화면의 다른 곳을 탭하면 키보드가 사라지도록 설정
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Form(
-            key: _formKey, // Form 위젯에 GlobalKey 연결
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -64,8 +121,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     if (value == null || value.isEmpty) {
                       return '이메일을 입력해주세요.';
                     }
-                    // 간단한 이메일 형식 검사
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return '올바른 이메일 형식이 아닙니다.';
                     }
                     return null;
@@ -73,11 +130,11 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // 비밀번호 입력 필드
+                // 비밀번호 입력
                 _buildTextFormField(
                   controller: _passwordController,
                   labelText: '비밀번호',
-                  obscureText: true, // 비밀번호 숨김 처리
+                  obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return '비밀번호를 입력해주세요.';
@@ -90,14 +147,14 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // 비밀번호 확인 필드
+                // 비밀번호 확인
                 _buildTextFormField(
                   controller: _confirmPasswordController,
                   labelText: '비밀번호 확인',
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return '비밀번호를 다시 한번 입력해주세요.';
+                      return '비밀번호를 다시 입력해주세요.';
                     }
                     if (value != _passwordController.text) {
                       return '비밀번호가 일치하지 않습니다.';
@@ -107,7 +164,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // 닉네임 입력 필드
+                // 닉네임 입력
                 _buildTextFormField(
                   controller: _nicknameController,
                   labelText: '닉네임',
@@ -125,24 +182,16 @@ class _SignUpPageState extends State<SignUpPage> {
 
                 // 회원가입 버튼
                 ElevatedButton(
-                  onPressed: () {
-                    // Form의 유효성 검사를 통과하면 true, 아니면 false 반환
-                    if (_formKey.currentState!.validate()) {
-                      // 유효성 검사 통과 시 실행할 로직
-                      // (예: 서버로 회원가입 정보 전송)
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('회원가입 처리 중...')),
-                      );
-                      // TODO: 실제 회원가입 로직 구현
-                    }
-                  },
+                  onPressed: _isLoading ? null : _signUp,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    backgroundColor: Colors.lightBlue,
                   ),
-                  child: const Text('가입하기', style: TextStyle(fontSize: 18)),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(
+                    color: Colors.white,
+                  )
+                      : const Text('가입하기', style: TextStyle(fontSize: 18)),
                 ),
               ],
             ),
@@ -152,7 +201,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // 반복되는 TextFormField를 위한 헬퍼 함수
   TextFormField _buildTextFormField({
     required TextEditingController controller,
     required String labelText,
@@ -170,8 +218,8 @@ class _SignUpPageState extends State<SignUpPage> {
         filled: true,
         fillColor: Colors.grey[100],
       ),
-      validator: validator, // 유효성 검사 함수 연결
-      autovalidateMode: AutovalidateMode.onUserInteraction, // 사용자가 입력할 때마다 검사
+      validator: validator,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
     );
   }
 }
