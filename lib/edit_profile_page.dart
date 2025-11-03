@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -9,9 +11,18 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  final _nicknameController = TextEditingController(text: 'test_user');
-  final _emailController = TextEditingController(text: 'test@test.com');
-  final _phoneController = TextEditingController(text: '010-1234-5678');
+
+  final _nicknameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
 
   @override
   void dispose() {
@@ -21,18 +32,64 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
-  void _updateProfile() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: 실제 정보 수정 로직 구현 (서버 통신 등)
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('정보가 성공적으로 수정되었습니다.')),
-      );
-      Navigator.of(context).pop();
+  // Firestore에서 사용자 정보 불러오기
+  Future<void> _loadUserProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final doc = await docRef.get();
+
+    if (doc.exists) {
+      final data = doc.data()!;
+      setState(() {
+        _nicknameController.text = data['nickname'] ?? '';
+        _emailController.text = data['email'] ?? user.email ?? '';
+        _phoneController.text = data['phone'] ?? '';
+        _isLoading = false;
+      });
+    } else {
+      // Firestore에 사용자 문서가 없으면 기본 값 세팅
+      await docRef.set({
+        'nickname': _nicknameController.text,
+        'email': _emailController.text,
+        'phone': _phoneController.text,
+      });
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  // Firestore에 사용자 정보 저장
+  Future<void> _updateProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'nickname': _nicknameController.text,
+      'email': _emailController.text,
+      'phone': _phoneController.text,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('정보가 성공적으로 수정되었습니다.')),
+    );
+
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('내 정보 수정'),

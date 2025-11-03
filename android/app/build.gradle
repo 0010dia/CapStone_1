@@ -52,3 +52,12 @@ flutter {
 dependencies {
     implementation files('libs/tmap-sdk-1.2.aar')
 }
+
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            force 'com.google.protobuf:protobuf-javalite:3.25.5'
+            exclude group: 'com.google.protobuf', module: 'protobuf-java'
+        }
+    }
+}

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'manufacturer_select_page.dart';
 
 class CarInfoPage extends StatefulWidget {
@@ -9,13 +11,116 @@ class CarInfoPage extends StatefulWidget {
 }
 
 class _CarInfoPageState extends State<CarInfoPage> {
-  // 차량 정보 상태 관리
+  // 기본 차량 정보
   String _manufacturer = "PCX";
   String _model = "pcx 125";
-  String _logoAsset = "assets/logos/honda.png"; // 예시 로고 경로
+  String _logoAsset = "assets/logos/honda.png";
+
+  // 상세 정보
+  late TextEditingController _yearController;
+  late TextEditingController _tankCapacityController;
+  late TextEditingController _fuelEfficiencyController;
+  late TextEditingController _displacementController;
+
+  String _selectedTransmission = "자동";
+  String _selectedFuelType = "휘발유";
+
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 컨트롤러 초기화
+    _yearController = TextEditingController(text: "2025.03");
+    _tankCapacityController = TextEditingController(text: "15");
+    _fuelEfficiencyController = TextEditingController(text: "24");
+    _displacementController = TextEditingController(text: "650");
+
+    _loadCarInfo();
+  }
+
+  @override
+  void dispose() {
+    _yearController.dispose();
+    _tankCapacityController.dispose();
+    _fuelEfficiencyController.dispose();
+    _displacementController.dispose();
+    super.dispose();
+  }
+
+  // Firestore에서 차량 정보 불러오기
+  Future<void> _loadCarInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final doc = await docRef.get();
+
+    if (doc.exists) {
+      final data = doc.data()!;
+      setState(() {
+        _manufacturer = data['manufacturer'] ?? _manufacturer;
+        _model = data['model'] ?? _model;
+        _logoAsset = data['logoAsset'] ?? _logoAsset;
+        _yearController.text = data['year'] ?? _yearController.text;
+        _selectedTransmission = data['transmission'] ?? _selectedTransmission;
+        _selectedFuelType = data['fuelType'] ?? _selectedFuelType;
+        _tankCapacityController.text = data['tankCapacity'] ?? _tankCapacityController.text;
+        _fuelEfficiencyController.text = data['fuelEfficiency'] ?? _fuelEfficiencyController.text;
+        _displacementController.text = data['displacement'] ?? _displacementController.text;
+        _isLoading = false;
+      });
+    } else {
+      await docRef.set({
+        'manufacturer': _manufacturer,
+        'model': _model,
+        'logoAsset': _logoAsset,
+        'year': _yearController.text,
+        'transmission': _selectedTransmission,
+        'fuelType': _selectedFuelType,
+        'tankCapacity': _tankCapacityController.text,
+        'fuelEfficiency': _fuelEfficiencyController.text,
+        'displacement': _displacementController.text,
+      });
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Firestore에 차량 정보 저장
+  Future<void> _saveCarInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'manufacturer': _manufacturer,
+      'model': _model,
+      'logoAsset': _logoAsset,
+      'year': _yearController.text,
+      'transmission': _selectedTransmission,
+      'fuelType': _selectedFuelType,
+      'tankCapacity': _tankCapacityController.text,
+      'fuelEfficiency': _fuelEfficiencyController.text,
+      'displacement': _displacementController.text,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('차량 정보가 저장되었습니다.')),
+    );
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -25,10 +130,7 @@ class _CarInfoPageState extends State<CarInfoPage> {
         title: const Text('차량 정보'),
         actions: [
           TextButton(
-            onPressed: () {
-              // TODO: 저장 로직 구현
-              Navigator.of(context).pop();
-            },
+            onPressed: _saveCarInfo,
             child: const Text('저장', style: TextStyle(fontSize: 16)),
           ),
         ],
@@ -46,7 +148,6 @@ class _CarInfoPageState extends State<CarInfoPage> {
     );
   }
 
-  // '기본 정보', '상세 정보' 같은 섹션 제목
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -55,7 +156,6 @@ class _CarInfoPageState extends State<CarInfoPage> {
     );
   }
 
-  // 제조사/차량모델 카드
   Widget _buildBasicInfoCard() {
     return Card(
       elevation: 2,
@@ -63,7 +163,6 @@ class _CarInfoPageState extends State<CarInfoPage> {
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            // Image.asset(_logoAsset, width: 48, height: 48), // 로고 이미지
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -80,20 +179,17 @@ class _CarInfoPageState extends State<CarInfoPage> {
             ),
             OutlinedButton(
               onPressed: () async {
-                // 변경 버튼 클릭 시 제조사 선택 페이지로 이동하고 결과를 받음
                 final result = await Navigator.push<Map<String, String>>(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const ManufacturerSelectPage()),
                 );
 
-                // 결과가 있으면 상태 업데이트
                 if (result != null && result.containsKey('manufacturer')) {
                   setState(() {
                     _manufacturer = result['manufacturer']!;
                     _model = result['model']!;
-                    // TODO: 로고 경로도 결과에 따라 업데이트
-                    // _logoAsset = result['logoAsset']!;
+                    _logoAsset = result['logoAsset'] ?? _logoAsset;
                   });
                 }
               },
@@ -105,7 +201,6 @@ class _CarInfoPageState extends State<CarInfoPage> {
     );
   }
 
-  // 상세 정보 입력 필드
   Widget _buildDetailInfoGrid() {
     return Card(
       elevation: 2,
@@ -113,44 +208,67 @@ class _CarInfoPageState extends State<CarInfoPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildDetailRow('연식', '2025.03', isDropdown: true),
+            _buildDetailRow("연식", controller: _yearController),
             const Divider(),
-            _buildDetailRow('변속기', '자동', isDropdown: true),
+            _buildDetailRow("변속기",
+                value: _selectedTransmission, dropdownItems: ["자동", "수동"]),
             const Divider(),
-            _buildDetailRow('연료 종류', '휘발유', isDropdown: true),
+            _buildDetailRow("연료 종류",
+                value: _selectedFuelType, dropdownItems: ["휘발유", "경유", "전기"]),
             const Divider(),
-            _buildDetailRow('연료탱크 용량', '15', unit: 'L'),
+            _buildDetailRow("연료탱크 용량", controller: _tankCapacityController, unit: "L"),
             const Divider(),
-            _buildDetailRow('공인연비', '24', unit: 'KM/L'),
+            _buildDetailRow("공인연비", controller: _fuelEfficiencyController, unit: "KM/L"),
             const Divider(),
-            _buildDetailRow('배기량', '650', unit: 'CC'),
+            _buildDetailRow("배기량", controller: _displacementController, unit: "CC"),
           ],
         ),
       ),
     );
   }
 
-  // 상세 정보 한 줄을 만드는 위젯
-  Widget _buildDetailRow(String label, String value,
-      {String? unit, bool isDropdown = false}) {
+  Widget _buildDetailRow(String label,
+      {TextEditingController? controller,
+        String? value,
+        List<String>? dropdownItems,
+        String? unit}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(color: Colors.grey.shade600)),
-          Row(
-            children: [
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w500)),
-              if (isDropdown) const Icon(Icons.arrow_drop_down),
-              if (unit != null) ...[
-                const SizedBox(width: 8),
-                Text(unit, style: TextStyle(color: Colors.grey.shade600)),
-              ],
-            ],
-          ),
+          if (controller != null)
+            SizedBox(
+              width: 120,
+              child: TextField(
+                controller: controller,
+                textAlign: TextAlign.right,
+                decoration: const InputDecoration(isDense: true, border: OutlineInputBorder()),
+              ),
+            )
+          else if (dropdownItems != null)
+            DropdownButton<String>(
+              value: value,
+              items: dropdownItems
+                  .map((item) => DropdownMenuItem(
+                value: item,
+                child: Text(item),
+              ))
+                  .toList(),
+              onChanged: (val) {
+                setState(() {
+                  if (label == "변속기") _selectedTransmission = val!;
+                  if (label == "연료 종류") _selectedFuelType = val!;
+                });
+              },
+            )
+          else
+            Text(value ?? ""),
+          if (unit != null) ...[
+            const SizedBox(width: 8),
+            Text(unit, style: TextStyle(color: Colors.grey.shade600)),
+          ]
         ],
       ),
     );

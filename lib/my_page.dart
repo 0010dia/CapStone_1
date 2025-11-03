@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'car_info_page.dart';
-import 'edit_profile_page.dart'; // 내 정보 수정 페이지 import
+import 'edit_profile_page.dart';
 import 'login_page.dart';
-import 'password_change_page.dart'; // ⭐️ 이름을 원래대로 password_change_page.dart로 되돌립니다.
+import 'password_change_page.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -14,6 +16,41 @@ class MyPage extends StatefulWidget {
 }
 
 class _MyPageState extends State<MyPage> {
+  bool _isLoading = true;
+  String _nickname = '';
+  String _email = '';
+  String _phone = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final doc = await docRef.get();
+
+    if (doc.exists) {
+      final data = doc.data()!;
+      setState(() {
+        _nickname = data['nickname'] ?? '';
+        _email = data['email'] ?? user.email ?? '';
+        _phone = data['phone'] ?? '';
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _nickname = '';
+        _email = user.email ?? '';
+        _phone = '';
+        _isLoading = false;
+      });
+    }
+  }
 
   Future<void> _showDeleteAccountDialog() async {
     if (!mounted) return;
@@ -22,7 +59,8 @@ class _MyPageState extends State<MyPage> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('회원 탈퇴'),
-          content: const Text('정말로 탈퇴하시겠습니까?\n모든 정보가 영구적으로 삭제되며 복구할 수 없습니다.'),
+          content: const Text(
+              '정말로 탈퇴하시겠습니까?\n모든 정보가 영구적으로 삭제되며 복구할 수 없습니다.'),
           actions: [
             TextButton(
               child: const Text('취소'),
@@ -52,6 +90,12 @@ class _MyPageState extends State<MyPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('마이페이지'),
@@ -59,11 +103,13 @@ class _MyPageState extends State<MyPage> {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: '내 정보 수정',
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              // EditProfilePage에서 돌아오면 정보 다시 불러오기
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const EditProfilePage()),
               );
+              _loadUserInfo();
             },
           ),
         ],
@@ -74,28 +120,29 @@ class _MyPageState extends State<MyPage> {
           _buildInfoTile(
             icon: Icons.person_outline,
             title: '닉네임',
-            subtitle: 'test_user',
+            subtitle: _nickname,
           ),
           _buildInfoTile(
             icon: Icons.email_outlined,
             title: '이메일',
-            subtitle: 'test@test.com',
+            subtitle: _email,
           ),
           _buildInfoTile(
             icon: Icons.phone_android_outlined,
             title: '휴대폰 번호',
-            subtitle: '010-1234-5678',
+            subtitle: _phone,
           ),
           const Divider(height: 20, thickness: 1),
           // 설정 및 관리 섹션
           _buildActionTile(
             icon: Icons.motorcycle_outlined,
             title: '차량 정보 관리',
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const CarInfoPage()),
               );
+              _loadUserInfo(); // 필요 시 정보 갱신
             },
           ),
           _buildActionTile(
@@ -104,7 +151,6 @@ class _MyPageState extends State<MyPage> {
             onTap: () {
               Navigator.push(
                 context,
-                // ⭐️ 연결 페이지를 PasswordChangePage로 되돌립니다.
                 MaterialPageRoute(builder: (context) => const PasswordChangePage()),
               );
             },
