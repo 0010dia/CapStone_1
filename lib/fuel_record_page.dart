@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-
-// ⭐️ 1. '가득/부분 주유' 선택을 위한 enum 삭제
-// enum FuelingType { full, partial }
 
 class FuelRecordPage extends StatefulWidget {
   const FuelRecordPage({super.key});
@@ -13,191 +11,193 @@ class FuelRecordPage extends StatefulWidget {
 }
 
 class _FuelRecordPageState extends State<FuelRecordPage> {
-  // ⭐️ 2. '가득/부분 주유' 상태 관리 변수 삭제
-  // FuelingType? _fuelingType = FuelingType.full;
+  final _formKey = GlobalKey<FormState>();
+  final _dateController = TextEditingController();
+  final _amountController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _stationController = TextEditingController();
 
-  String getToday() {
-    return DateFormat('yyyy.MM.dd (E)', 'ko_KR').format(DateTime.now());
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    _amountController.dispose();
+    _priceController.dispose();
+    _stationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveRecord() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final user = _auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('로그인이 필요합니다.')),
+      );
+      return;
+    }
+
+    try {
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('fuel_records')
+          .add({
+        'date': _dateController.text,
+        'amount': double.parse(_amountController.text),
+        'price': int.parse(_priceController.text),
+        'station': _stationController.text,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('주유 기록이 저장되었습니다.')),
+      );
+
+      _dateController.clear();
+      _amountController.clear();
+      _priceController.clear();
+      _stationController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('저장 실패: $e')),
+      );
+    }
+  }
+
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = _auth.currentUser;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Column(
+        title: const Text('주유 기록'),
+        backgroundColor: Colors.lightBlue,
+      ),
+      body: user == null
+          ? const Center(child: Text('로그인이 필요합니다.'))
+          : SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            const Text('주유 기록', style: TextStyle(color: Colors.black, fontSize: 18)),
-            Text(
-              getToday(),
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _dateController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: '주유 날짜',
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    onTap: _selectDate,
+                    validator: (value) =>
+                    value == null || value.isEmpty ? '날짜를 선택하세요' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: '주유량 (L)',
+                    ),
+                    validator: (value) =>
+                    value == null || value.isEmpty ? '주유량을 입력하세요' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _priceController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: '가격 (원)',
+                    ),
+                    validator: (value) =>
+                    value == null || value.isEmpty ? '가격을 입력하세요' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _stationController,
+                    decoration: const InputDecoration(
+                      labelText: '주유소 이름',
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _saveRecord,
+                    icon: const Icon(Icons.save),
+                    label: const Text('기록 저장'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            const Divider(),
+            const SizedBox(height: 16),
+            const Text(
+              '나의 주유 기록',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('users')
+                  .doc(user.uid)
+                  .collection('fuel_records')
+                  .orderBy('createdAt', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Text('저장된 주유 기록이 없습니다.');
+                }
+
+                final records = snapshot.data!.docs;
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: records.length,
+                  itemBuilder: (context, index) {
+                    final data = records[index].data() as Map<String, dynamic>;
+                    return Card(
+                      child: ListTile(
+                        title: Text('${data['date']} - ${data['station'] ?? '주유소 미입력'}'),
+                        subtitle: Text('주유량: ${data['amount']}L / 금액: ${data['price']}원'),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ],
         ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('완료', style: TextStyle(color: Colors.blue, fontSize: 16)),
-          )
-        ],
-      ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            _buildLocationInput(),
-            const SizedBox(height: 16),
-            _buildNumericInputRow(
-              icon: Icons.speed_outlined,
-              label: '누적주행거리',
-              unit: 'km',
-              isDropdown: true,
-            ),
-            const SizedBox(height: 16),
-            _buildNumericInputRow(
-              icon: Icons.receipt_long_outlined,
-              label: '주유금액',
-              unit: '₩',
-            ),
-            const SizedBox(height: 16),
-            _buildNumericInputRow(
-              icon: Icons.local_gas_station_outlined,
-              label: '휘발유',
-              unit: '₩',
-              isDropdown: true,
-            ),
-            const SizedBox(height: 16),
-            _buildNumericInputRow(
-              icon: Icons.opacity_outlined,
-              label: '주유량',
-              unit: 'L',
-            ),
-            const SizedBox(height: 24),
-            // ⭐️ 3. '가득/부분 주유' 선택 위젯과 '세차비' 입력 위젯 호출 코드 삭제
-            // _buildFuelingTypeSelector(),
-            // const SizedBox(height: 24),
-            // _buildNumericInputRow(
-            //   icon: Icons.wash_outlined,
-            //   label: '세차비',
-            //   unit: '₩',
-            // ),
-            // const SizedBox(height: 24),
-            _buildMemoInput(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLocationInput() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.location_on_outlined, color: Colors.grey),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextFormField(
-              initialValue: '송정주유소',
-              decoration: const InputDecoration(
-                hintText: '주유소 이름을 입력하세요',
-                border: InputBorder.none,
-                isDense: true,
-              ),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          TextButton(
-            onPressed: () {},
-            child: const Text('변경'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNumericInputRow({
-    required IconData icon,
-    required String label,
-    required String unit,
-    bool isDropdown = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Text(label, style: const TextStyle(fontSize: 16)),
-          if (isDropdown) const Icon(Icons.arrow_drop_down, color: Colors.grey),
-          const Spacer(),
-          SizedBox(
-            width: 120,
-            child: TextFormField(
-              textAlign: TextAlign.end,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
-              decoration: const InputDecoration(
-                hintText: '0',
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(unit, style: TextStyle(fontSize: 16, color: Colors.grey[700])),
-        ],
-      ),
-    );
-  }
-
-  // ⭐️ 4. '가득/부분 주유' 위젯을 만드는 함수 전체 삭제
-  // Widget _buildFuelingTypeSelector() { ... }
-
-  Widget _buildMemoInput() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.notes_outlined, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextFormField(
-              maxLines: 4,
-              maxLength: 250,
-              decoration: const InputDecoration(
-                hintText: '메모, 특이사항 (250자, 이모티콘 불가)',
-                border: InputBorder.none,
-                counterText: '',
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

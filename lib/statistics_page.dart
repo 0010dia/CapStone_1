@@ -1,13 +1,89 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class StatisticsPage extends StatelessWidget {
+class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
+
+  @override
+  State<StatisticsPage> createState() => _StatisticsPageState();
+}
+
+class _StatisticsPageState extends State<StatisticsPage> {
+  double totalFuelPrice = 0.0;
+  double totalMaintenancePrice = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFuelPrice();
+    _loadMaintenancePrice();
+
+  }
+
+  Future<void> _loadFuelPrice() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('fuel_records')
+        .get();
+
+    double total = 0.0;
+    for (var doc in snapshot.docs) {
+      final price = doc['price'] is num ? (doc['price'] as num).toDouble() : 0.0;
+      total += price;
+    }
+
+    setState(() {
+      totalFuelPrice = total;
+    });
+
+
+  }
+
+  Future<void> _loadMaintenancePrice() async {
+    final price = await fetchTotalMaintenancePrice();
+    setState(() {
+      totalMaintenancePrice = price;
+    });
+  }
+
+  Future<double> fetchTotalMaintenancePrice() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 0.0;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('maintenance_records')
+        .get();
+
+    double total = 0.0;
+
+    for (var doc in snapshot.docs) {
+      final items = doc.data()['items'] as Map<String, dynamic>?;
+
+      if (items != null) {
+        for (var entry in items.entries) {
+          final item = entry.value as Map<String, dynamic>;
+          final costStr = item['cost'] ?? '0';
+          final cost = double.tryParse(costStr.toString().replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
+          total += cost;
+        }
+      }
+    }
+
+    return total;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2C2C2E), // 어두운 배경색
+      backgroundColor: const Color(0xFF2C2C2E),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -77,9 +153,9 @@ class StatisticsPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSummaryMetric('총 주유비', '₩218,616'),
-              _buildSummaryMetric('총 정비/기타비', '₩0'),
-              _buildSummaryMetric('총 지출', '₩218,616'),
+              _buildSummaryMetric('총 주유비', '₩${totalFuelPrice.toStringAsFixed(0)}'),
+              _buildSummaryMetric('총 정비/기타비', '₩${totalMaintenancePrice.toStringAsFixed(0)}'),
+              _buildSummaryMetric('총 지출', '₩${(totalFuelPrice + totalMaintenancePrice).toStringAsFixed(0)}'),
             ],
           ),
           const SizedBox(height: 16),
@@ -143,7 +219,6 @@ class StatisticsPage extends StatelessWidget {
     );
   }
 
-  // BarChart를 만드는 공통 함수
   Widget _buildBarChart({
     required Map<int, double> data,
     required Color barColor,
@@ -154,7 +229,7 @@ class StatisticsPage extends StatelessWidget {
         maxY: maxY,
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (group) => Colors.grey[700]!, // 수정된 부분
+            getTooltipColor: (group) => Colors.grey[700]!,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 rod.toY.toStringAsFixed(2),
@@ -171,7 +246,6 @@ class StatisticsPage extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              // ⭐️⭐️⭐️ 오류가 발생했던 핵심 수정 부분 ⭐️⭐️⭐️
               getTitlesWidget: (double value, TitleMeta meta) {
                 return SideTitleWidget(
                   axisSide: meta.axisSide,
@@ -185,7 +259,6 @@ class StatisticsPage extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 35,
-              // ⭐️⭐️⭐️ 오류가 발생했던 핵심 수정 부분 ⭐️⭐️⭐️
               getTitlesWidget: (double value, TitleMeta meta) {
                 if (value == 0) return const SizedBox.shrink();
                 return Text(value.toInt().toString(), style: const TextStyle(color: Colors.white70, fontSize: 12));

@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-// 정비 항목 하나를 나타내는 데이터 클래스
 class MaintenanceItem {
   String? selectedType;
   final TextEditingController costController = TextEditingController();
   final TextEditingController memoController = TextEditingController();
 
   MaintenanceItem({this.selectedType});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'type': selectedType,
+      'cost': costController.text.trim(),
+      'memo': memoController.text.trim(),
+    };
+  }
 }
 
 class MaintenanceRecordPage extends StatefulWidget {
@@ -18,20 +27,19 @@ class MaintenanceRecordPage extends StatefulWidget {
 }
 
 class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
-  // 동적으로 추가/삭제될 정비 항목 리스트
   final List<MaintenanceItem> _maintenanceItems = [];
   final List<String> _maintenanceTypes = ['엔진 오일', '타이어', '브레이크', '체인', '기타'];
+  final TextEditingController _odometerController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // 페이지가 시작될 때 기본 항목 하나를 추가
     _addNewItem();
   }
 
   @override
   void dispose() {
-    // 모든 컨트롤러를 정리하여 메모리 누수 방지
+    _odometerController.dispose();
     for (var item in _maintenanceItems) {
       item.costController.dispose();
       item.memoController.dispose();
@@ -46,10 +54,8 @@ class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
   }
 
   void _removeItem(int index) {
-    // 항목이 최소 1개는 유지되도록 함
     if (_maintenanceItems.length > 1) {
       setState(() {
-        // dispose를 호출하여 컨트롤러 정리
         _maintenanceItems[index].costController.dispose();
         _maintenanceItems[index].memoController.dispose();
         _maintenanceItems.removeAt(index);
@@ -63,6 +69,40 @@ class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
 
   String getToday() {
     return DateFormat('yyyy.MM.dd (E)', 'ko_KR').format(DateTime.now());
+  }
+
+  Future<void> _saveRecord() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('로그인이 필요합니다.')),
+      );
+      return;
+    }
+
+    try {
+      final recordData = {
+        'date': DateTime.now(),
+        'odometer': _odometerController.text.trim(),
+        'items': _maintenanceItems.map((item) => item.toMap()).toList(),
+      };
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('maintenance_records')
+          .add(recordData);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('정비 기록이 저장되었습니다.')),
+      );
+
+      Navigator.of(context).pop();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('저장 실패: $e')),
+      );
+    }
   }
 
   @override
@@ -82,10 +122,7 @@ class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
         centerTitle: true,
         actions: [
           TextButton(
-            onPressed: () {
-              // TODO: 저장 로직 구현
-              Navigator.of(context).pop();
-            },
+            onPressed: _saveRecord,
             child: const Text('완료', style: TextStyle(fontSize: 16)),
           ),
         ],
@@ -96,14 +133,11 @@ class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
           children: [
             _buildOdometerRow(),
             const SizedBox(height: 24),
-            // 정비 항목 리스트를 동적으로 구성
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _maintenanceItems.length,
-              itemBuilder: (context, index) {
-                return _buildMaintenanceItemCard(index);
-              },
+              itemBuilder: (context, index) => _buildMaintenanceItemCard(index),
             ),
             const SizedBox(height: 16),
             _buildAddRemoveButtons(),
@@ -113,14 +147,13 @@ class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
     );
   }
 
-  // 누적주행거리 입력 위젯
   Widget _buildOdometerRow() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300)
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Row(
         children: [
@@ -131,11 +164,12 @@ class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
           SizedBox(
             width: 120,
             child: TextFormField(
-              initialValue: '3,123.1',
+              controller: _odometerController,
               textAlign: TextAlign.end,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 border: InputBorder.none,
+                hintText: '예: 3123.1',
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),
@@ -149,7 +183,6 @@ class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
     );
   }
 
-  // 개별 정비 항목 카드
   Widget _buildMaintenanceItemCard(int index) {
     final item = _maintenanceItems[index];
     return Card(
@@ -209,7 +242,6 @@ class _MaintenanceRecordPageState extends State<MaintenanceRecordPage> {
     );
   }
 
-  // 항목 추가/삭제 버튼
   Widget _buildAddRemoveButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

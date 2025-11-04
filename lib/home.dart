@@ -3,7 +3,10 @@ import 'car_info_page.dart';
 import 'fuel_history_page.dart';
 import 'maintenance_record_page.dart';
 import 'statistics_page.dart';
-
+import 'maintenance_list_page.dart';
+import 'maintenance_schedule_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -31,87 +34,155 @@ class Home extends StatelessWidget {
 
   // '내 차 정보' 카드
   Widget _buildCarInfoCard(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 160, 160, 160),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return const Center(
+        child: Text('로그인이 필요합니다.'),
+      );
+    }
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              '차량 정보가 없습니다.\n"내 차 정보" 페이지에서 등록해주세요.',
+              textAlign: TextAlign.center,
+            ),
+          );
+        }
+
+        final data = snapshot.data!.data() as Map<String, dynamic>;
+        final manufacturer = (data['manufacturer'] ?? '제조사 정보 없음').toString();
+        final model = (data['model'] ?? '모델 정보 없음').toString();
+        final year = (data['year'] ?? '연식 정보 없음').toString();
+        final fuelType = (data['fuelType'] ?? '연료 정보 없음').toString();
+
+        // 🔹 manufacturer에 따라 로컬 로고 자동 매칭
+        String logoPath = 'assets/logos/${manufacturer.toLowerCase()}.png';
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 160, 160, 160),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("pcx",
-                        style: TextStyle(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$manufacturer / $model',
+                          style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold)),
-                    const Text("172일 째 관리 중",
-                        style: TextStyle(color: Colors.white)),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const CarInfoPage()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[700]),
-                      child: const Text("내 차 정보",
-                          style: TextStyle(color: Colors.white)),
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const CarInfoPage()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[700]),
+                          child: const Text("내 차 정보",
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              // assets/img.PNG 경로에 파일이 있는지 꼭 확인해주세요!
-              Image.asset("assets/img.PNG", width: 150),
-            ],
-          ),
-          const Divider(color: Colors.white24, height: 20),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Column(
-                children: [
-                  Text("누적주행거리", style: TextStyle(color: Colors.white)),
-                  SizedBox(height: 4),
-                  Text("2,947.9 km",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
+                  ),
+                  Image.asset(
+                    logoPath,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.network(
+                        'https://cdn-icons-png.flaticon.com/512/1995/1995574.png',
+                        width: 80,
+                        height: 80,
+                      );
+                    },
+                  ),
                 ],
               ),
-              SizedBox(
-                  height: 30, child: VerticalDivider(color: Colors.white24)),
-              Column(
+              const Divider(color: Colors.white24, height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Text("평균 연비", style: TextStyle(color: Colors.white)),
-                  SizedBox(height: 4),
-                  Text("22.4 km/L",
-                      style: TextStyle(
+                  Column(
+                    children: [
+                      const Text("연식", style: TextStyle(color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Text(
+                        year,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
-                          fontWeight: FontWeight.bold)),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                      height: 30, child: VerticalDivider(color: Colors.white24)),
+                  Column(
+                    children: [
+                      const Text("연료 종류", style: TextStyle(color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Text(
+                        fuelType,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
+
+
+
+
   // '최근 기록' 카드 위젯
   Widget _buildRecentRecordsCard(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -124,14 +195,17 @@ class Home extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("최근 기록",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                "최근 기록",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const FuelHistoryPage()),
+                      builder: (context) => const FuelHistoryPage(),
+                    ),
                   );
                 },
                 child: Text("더보기 >", style: TextStyle(color: Colors.grey[600])),
@@ -139,42 +213,67 @@ class Home extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          _buildFuelRecordItem(
-            iconColor: Colors.teal,
-            date: "09.27",
-            fuelAmount: "8.49L",
-            station: "대성산업(주)대성물류터미널2주유소",
-            distance: "175 km",
-            efficiency: "20.64 km/L",
-            totalCost: "₩13,479",
-            pricePerLiter: "1,588₩/L",
-          ),
-          const Divider(),
-          _buildFuelRecordItem(
-            iconColor: Colors.orange,
-            date: "08.15",
-            fuelAmount: "6.96L",
-            station: "보성주유소",
-            distance: "157 km",
-            efficiency: "22.57 km/L",
-            totalCost: "₩11,187",
-            pricePerLiter: "1,608₩/L",
-          ),
-          const Divider(),
-          _buildFuelRecordItem(
-            iconColor: Colors.blue,
-            date: "08.14",
-            fuelAmount: "7.28L",
-            station: "세방주유소",
-            distance: "179 km",
-            efficiency: "24.54 km/L",
-            totalCost: "₩11,540",
-            pricePerLiter: "1,585₩/L",
-          ),
+
+          // ✅ Firestore에서 주유기록 실시간 가져오기
+          if (user == null)
+            const Text('로그인이 필요합니다.')
+          else
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .collection('fuel_records')
+                  .orderBy('createdAt', descending: true)
+                  .limit(3) // 🔹 최근 3개만 표시
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text('최근 주유 기록이 없습니다.'),
+                  );
+                }
+
+                final records = snapshot.data!.docs;
+
+                return Column(
+                  children: records.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+
+                    final date = data['date'] ?? '-';
+                    final amount = data['amount']?.toString() ?? '-';
+                    final price = data['price']?.toString() ?? '-';
+                    final station = data['station'] ?? '주유소 미입력';
+
+                    return Column(
+                      children: [
+                        _buildFuelRecordItem(
+                          iconColor: Colors.teal,
+                          date: date,
+                          fuelAmount: "${amount}L",
+                          station: station,
+                          distance: "", // 거리 계산 기능 추가 가능
+                          efficiency: "",
+                          totalCost: "₩$price",
+                          pricePerLiter: "",
+                        ),
+                        if (records.last.id != doc.id) const Divider(),
+                      ],
+                    );
+                  }).toList(),
+                );
+              },
+            ),
         ],
       ),
     );
   }
+
+
 
   // '정비 목록' 및 통계 카드 위젯
   Widget _buildMaintenanceCard(BuildContext context) {
@@ -283,17 +382,33 @@ class Home extends StatelessWidget {
       BuildContext context, IconData icon, String label) {
     return TextButton(
       onPressed: () {
-        if (label == "통계") {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const StatisticsPage()),
-          );
-        }
-        if (label == "기록") {
+        if (label == "정비목록") {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => const MaintenanceRecordPage()),
+              builder: (context) => const MaintenanceListPage(),
+            ),
+          );
+        } else if (label == "기록") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MaintenanceRecordPage(),
+            ),
+          );
+        } else if (label == "통계") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const StatisticsPage(),
+            ),
+          );
+        } else if (label == "점검일정") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MaintenanceSchedulePage(),
+            ),
           );
         }
       },

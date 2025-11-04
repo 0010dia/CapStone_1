@@ -3,12 +3,14 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'home.dart';
 import 'navi.dart';
 import 'notifications.dart';
 import 'more.dart';
 import 'fuel_record_page.dart';
+import 'maintenance_record_page.dart';
 import 'login_page.dart';
 import 'firebase_options.dart';
 
@@ -32,6 +34,15 @@ class MyCarApp extends StatelessWidget {
     return MaterialApp(
       title: '신속정확배달',
       debugShowCheckedModeBanner: false,
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('ko', 'KR'),
+      ],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       // ✅ FirebaseAuth 상태에 따라 로그인 여부를 자동으로 감지
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
@@ -158,7 +169,10 @@ class _MainPageState extends State<MainPage> {
           label: '정비 기록',
           backgroundColor: Colors.orange,
           onTap: () {
-            print('정비 기록 추가');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MaintenanceRecordPage()),
+            );
           },
         ),
         SpeedDialChild(

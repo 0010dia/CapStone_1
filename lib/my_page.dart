@@ -72,13 +72,35 @@ class _MyPageState extends State<MyPage> {
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('탈퇴'),
               onPressed: () async {
+                final user = FirebaseAuth.instance.currentUser;
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('isLoggedIn', false);
-                if (mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                        (Route<dynamic> route) => false,
-                  );
+
+                try {
+                  // Firestore 사용자 데이터 삭제
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user!.uid)
+                      .delete();
+
+                  // Firebase Authentication 계정 삭제
+                  await user.delete();
+
+                  // 로그인 상태 초기화
+                  await prefs.setBool('isLoggedIn', false);
+
+                  if (mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                          (Route<dynamic> route) => false,
+                    );
+                  }
+                } catch (e) {
+                  print('회원 탈퇴 실패: $e');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('회원 탈퇴 중 오류가 발생했습니다.')),
+                    );
+                  }
                 }
               },
             ),
@@ -104,7 +126,6 @@ class _MyPageState extends State<MyPage> {
             icon: const Icon(Icons.edit_outlined),
             tooltip: '내 정보 수정',
             onPressed: () async {
-              // EditProfilePage에서 돌아오면 정보 다시 불러오기
               await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const EditProfilePage()),
@@ -116,7 +137,6 @@ class _MyPageState extends State<MyPage> {
       ),
       body: ListView(
         children: [
-          // 사용자 정보 섹션
           _buildInfoTile(
             icon: Icons.person_outline,
             title: '닉네임',
@@ -133,7 +153,6 @@ class _MyPageState extends State<MyPage> {
             subtitle: _phone,
           ),
           const Divider(height: 20, thickness: 1),
-          // 설정 및 관리 섹션
           _buildActionTile(
             icon: Icons.motorcycle_outlined,
             title: '차량 정보 관리',
@@ -142,7 +161,7 @@ class _MyPageState extends State<MyPage> {
                 context,
                 MaterialPageRoute(builder: (context) => const CarInfoPage()),
               );
-              _loadUserInfo(); // 필요 시 정보 갱신
+              _loadUserInfo();
             },
           ),
           _buildActionTile(

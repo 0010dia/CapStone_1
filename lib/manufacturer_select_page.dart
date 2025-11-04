@@ -1,16 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'model_select_page.dart';
 
 class ManufacturerSelectPage extends StatelessWidget {
   const ManufacturerSelectPage({super.key});
 
   static const List<Map<String, String>> manufacturers = [
-    {'name': '혼다', 'logo': 'assets/logos/honda.png'},
-    {'name': 'BMW', 'logo': 'assets/logos/bmw.png'},
-    {'name': '야마하', 'logo': 'assets/logos/yamaha.png'},
-    {'name': '두카티', 'logo': 'assets/logos/ducati.png'},
-    {'name': '스즈키', 'logo': 'assets/logos/suzuki.png'},
+    {'name': 'honda', 'logo': 'assets/logos/honda.png'},
   ];
+
+  Future<void> _saveVehicleInfo({
+    required String manufacturer,
+    required String model,
+    String? logoAsset,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid); // ✅ vehicle_info 제거
+
+    await docRef.set({
+      'manufacturer': manufacturer,
+      'model': model,
+      'logoAsset': logoAsset ?? '',
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +50,27 @@ class ManufacturerSelectPage extends StatelessWidget {
                   children: [
                     TextField(
                       controller: manuController,
-                      decoration:
-                      const InputDecoration(labelText: '제조사'),
+                      decoration: const InputDecoration(labelText: '제조사'),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: modelController,
-                      decoration:
-                      const InputDecoration(labelText: '차량 모델'),
+                      decoration: const InputDecoration(labelText: '차량 모델'),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (manuController.text.isNotEmpty &&
                             modelController.text.isNotEmpty) {
-                          Navigator.of(context).pop({
-                            'manufacturer': manuController.text,
-                            'model': modelController.text,
-                          });
+                          await _saveVehicleInfo(
+                            manufacturer: manuController.text,
+                            model: modelController.text,
+                          );
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('차량 정보가 저장되었습니다.')),
+                          );
                         }
                       },
                       child: const Text('입력 완료'),
@@ -65,7 +86,7 @@ class ManufacturerSelectPage extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
+                crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
@@ -81,17 +102,33 @@ class ManufacturerSelectPage extends StatelessWidget {
                             ModelSelectPage(manufacturerName: manu['name']!),
                       ),
                     );
-                    if (model != null) {
-                      Navigator.of(context).pop({
-                        'manufacturer': manu['name'],
-                        'model': model,
-                        'logoAsset': manu['logo'],
-                      });
+
+                    if (model != null && context.mounted) {
+                      await _saveVehicleInfo(
+                        manufacturer: manu['name']!,
+                        model: model,
+                        logoAsset: manu['logo'],
+                      );
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('${manu['name']} $model 정보가 저장되었습니다.')),
+                      );
                     }
                   },
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Image.asset(
+                        manu['logo']!,
+                        height: 80,
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Icon(
+                          Icons.motorcycle,
+                          size: 60,
+                          color: Colors.grey,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Text(manu['name']!),
                     ],
