@@ -8,6 +8,31 @@ import 'package:tmap_ui_sdk/route/data/route_point.dart';
 import 'package:tmap_ui_sdk/route/data/route_request_data.dart';
 import 'package:tmap_ui_sdk/tmap_ui_sdk_manager.dart';
 import 'package:tmap_ui_sdk/widget/tmap_view_widget.dart';
+import 'package:geolocator/geolocator.dart';
+
+Future<RoutePoint> _getCurrentLocationAsRoutePoint() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    log("위치 서비스가 꺼져 있습니다.");
+    throw Exception("위치 서비스 꺼짐");
+  }
+
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      log("위치 권한이 거부되었습니다.");
+      throw Exception("위치 권한 거부");
+    }
+  }
+
+  Position position = await Geolocator.getCurrentPosition();
+  return RoutePoint(
+    name: "현재 위치",
+    latitude: position.latitude,
+    longitude: position.longitude,
+  );
+}
 
 class TmapViewScreen extends StatefulWidget {
   final RoutePoint destination;
@@ -52,20 +77,25 @@ class _TmapViewScreenState extends State<TmapViewScreen> {
     }
   }
 
-  void _setupRouteAndPrepareUI() {
-    _routeRequestData = RouteRequestData(
-      // ⭐️ 출발지를 '서울시청'으로 임의 설정
-      source: RoutePoint(name: "서울시청", latitude: 37.5665, longitude: 126.9780),
-      // NaviPage에서 전달받은 목적지 사용
-      destination: widget.destination,
-      routeOption: [PlanningOption.recommend],
-      safeDriving: false,
-    );
+  void _setupRouteAndPrepareUI() async {
+    try {
+      RoutePoint currentLocation = await _getCurrentLocationAsRoutePoint();
 
-    if (mounted) {
-      setState(() {
-        _isReady = true;
-      });
+      _routeRequestData = RouteRequestData(
+        source: currentLocation,
+        destination: widget.destination,
+        routeOption: [PlanningOption.recommend],
+        safeDriving: false,
+      );
+
+      if (mounted) {
+        setState(() {
+          _isReady = true;
+        });
+      }
+    } catch (e) {
+      log("현재 위치를 가져오는 데 실패했습니다: ${e.toString()}");
+      if (mounted) Navigator.pop(context);
     }
   }
 

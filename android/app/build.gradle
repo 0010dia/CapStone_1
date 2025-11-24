@@ -16,6 +16,16 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
 
+    buildTypes {
+        release {
+            signingConfig signingConfigs.getByName('debug')
+
+            // 🔥 R8 비활성화 (중요!)
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+
     kotlinOptions {
         jvmTarget = '11'
     }
